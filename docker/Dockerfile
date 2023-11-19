@@ -3,7 +3,7 @@ FROM hacklab/mapasculturais:7.0.0-RC
 COPY themes /var/www/src/themes
 COPY plugins /var/www/src/plugins
 
-COPY docker/compose/common/lgpd-terms /var/www/conf/lgpd-terms
+COPY docker/common/lgpd-terms /var/www/conf/lgpd-terms
 
 WORKDIR /var/www/src
 RUN pnpm install --recursive && pnpm run build 
