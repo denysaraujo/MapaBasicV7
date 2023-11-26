@@ -1,3 +1,3 @@
 <?php
-date_default_timezone_get('America/SaoPaulo');
+date_default_timezone_set('America/SaoPaulo');
 return[];
