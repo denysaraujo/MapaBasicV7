@@ -6,9 +6,9 @@ COPY plugins /var/www/src/plugins
 WORKDIR /var/www/src
 RUN pnpm install --recursive && pnpm run build
 
-COPY docker/common/config.d /var/www/config
-COPY docker/common/lgpd-terms /var/www/config/lgpd-terms
-COPY docker/production/config.d /var/www/config
+COPY docker/common/config /var/www/config/common.d
+COPY docker/production/config /var/www/config
+COPY docker/modules/2.IntroducaoMapa /var/www/src/modules/FAQ/questions/pt_BR/2.IntroducaoMapa/1.mapa-cultural
 
 COPY docker/common/php-ini.d /usr/local/etc/php/conf.d
 
