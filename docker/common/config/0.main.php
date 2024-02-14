@@ -13,6 +13,11 @@ return [
     'app.verifiedSealsIds' => '1', 
 
     'app.lcode' => env('APP_LCODE', 'pt_BR,es_ES'),
+
+    'registration.autosaveTimeout' => env('REGISTRATION_AUTOSAVE_INTERVAL', MINUTE_IN_SECONDS * 1000),    
+
+    'ini.set' => json_decode(env('PHP_INI_SET', '[]'))
+    
     //'homeHeader.banner' => 'img/banner-caderno-lpg.jpg',
     //'homeHeader.bannerLink' => 'https://mapacultural.pa.gov.br/files/agent/7/caderno-de-orientacoes-pcac-27-09-2023.pdf',
     //'homeHeader.downloadableLink' => true,
