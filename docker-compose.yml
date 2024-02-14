@@ -2,7 +2,7 @@ version: '3'
 services:
   web:
     image: hacklab/mapasculturais-nginx:v1.0
-    restart: unless-stopped
+    restart: always
     volumes:
      - ./docker-data/public-files:/var/www/html/files
      - ./docker-data/assets:/var/www/html/assets
@@ -22,7 +22,7 @@ services:
     build:
       context: ./
       dockerfile: docker/Dockerfile
-    restart: unless-stopped
+    restart: always
     ports:
       - "9000:9000"
     volumes:
@@ -32,7 +32,6 @@ services:
     links:
       - db
       - redis
-      - sessions
     environment:
       #- ACTIVE_THEME=Paraiba
 
@@ -54,23 +53,14 @@ services:
     depends_on:
       - db
       - redis
-      - sessions
 
   redis:
     image: redis:6
-    restart: unless-stopped
     command: --maxmemory 256Mb --maxmemory-policy allkeys-lru
-
-  sessions:
-    image: redis:6
-    restart: unless-stopped
-    command: --maxmemory 384Mb --maxmemory-policy allkeys-lru
-    volumes:
-      - ./docker-data/sessions:/data  
 
   db:
     image: postgis/postgis:14-master
-    restart: unless-stopped
+    restart: always
     environment:
       - POSTGRES_PASSWORD=mapas
       - POSTGRES_USER=mapas
