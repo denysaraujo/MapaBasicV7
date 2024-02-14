@@ -1,70 +1,72 @@
 version: '3'
 services:
-  nginx:
-    image: nginx:latest
+  web:
+    image: hacklab/mapasculturais-nginx:v1.0
     restart: unless-stopped
-    volumes:      
-      #- ./docker/production/nginx.conf:/etc/nginx/conf.d/default.conf    
-
-      #- /dev/null:/var/www/html/index.php
-
-      - ./docker-data/public-files:/var/www/html/files
-      - ./docker-data/assets:/var/www/html/assets 
-
-  ##### versão com ssl
-    #  - ./docker/production/nginx-ssl.conf:/etc/nginx/conf.d/default.conf
-    #  - ./docker-data/certs/conf:/etc/letsencrypt
-    #  - ./docker-data/certs/www:/var/www/certbot
-
+    volumes:
+     - ./docker-data/public-files:/var/www/html/files
+     - ./docker-data/assets:/var/www/html/assets
     ports:
      - "8080:80"
      - "8443:443"
+    environment:
+     - MAPAS_HOSTNAME=mapasculturais
     depends_on:
       - mapasculturais
     links:
       - mapasculturais
+
+  mapasculturais:
+    env_file:
+      - str.env
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./docker-data/assets:/var/www/html/assets
+      - ./docker-data/public-files:/var/www/html/files
+      - ./docker-data/private-files:/var/www/private-files
+    links:
+      - db
+      - redis
+      - sessions
+    environment:
+      #- ACTIVE_THEME=Paraiba
+
+      - LOG_LEVEL=DEBUG
+      - LOG_ENABLED=true
+
+      - APP_MODE=production
+      - APP_LCODE=pt_BR
+#      - APP_LCODE=pt_BR,es_ES # para selecao do idioma baseado no navegador
+
+      - REDIS_CACHE=redis
+      - SESSIONS_SAVE_PATH=tcp://redis:6379
+      - PENDING_PCACHE_RECREATION_INTERVAL=60
+
+      - DB_PASSWORD=mapas
+      - DB_USER=mapas
+      - DB_DB=mapas
+      - DB_VERSION=14
+    depends_on:
+      - db
+      - redis
+      - sessions
+
+  redis:
+    image: redis:6
+    restart: unless-stopped
+    command: --maxmemory 256Mb --maxmemory-policy allkeys-lru
 
   sessions:
     image: redis:6
     restart: unless-stopped
     command: --maxmemory 384Mb --maxmemory-policy allkeys-lru
     volumes:
-      - ./docker-data/sessions:/data
-
-  redis:
-    image: redis:6
-    restart: unless-stopped
-    command: --maxmemory 384Mb --maxmemory-policy allkeys-lru
-  
-  mapasculturais:    
-    build:
-      context: ./
-      dockerfile: docker/Dockerfile
-    env_file:
-      - str.env
-    restart: unless-stopped
-    volumes:
-      - ./str.env:/.str.env
-      - ./docker-data/assets:/var/www/html/assets
-      - ./docker-data/public-files:/var/www/html/files
-      - ./docker-data/private-files:/var/www/var/private-files
-      - ./docker-data/saas-files:/var/www/var/saas-files
-      - ./docker-data/sessions:/var/www/var/sessions
-      - ./docker-data/logs:/var/www/var/logs     
-
-    environment:
-      - REDIS_CACHE=redis
-      - SESSIONS_SAVE_PATH=tcp://sessions:6379
-
-    depends_on:
-      - db
-      - redis
-      - sessions  
-      
-    links:
-      - db
-      - redis
-      - sessions    
+      - ./docker-data/sessions:/data  
 
   db:
     image: postgis/postgis:14-master
@@ -73,17 +75,9 @@ services:
       - POSTGRES_PASSWORD=mapas
       - POSTGRES_USER=mapas
       - POSTGRES_DB=mapas
+      #- POSTGRES_DB_TEST=mapasculturais_test
+    ports:
+      - "5432:5432"
     volumes:
-      - ./docker/db:/docker-entrypoint-initdb.d
+      - ./docker/bd/dump.sql:/docker-entrypoint-initdb.d/dump.sql
       - ./docker-data/db-data:/var/lib/postgresql/data
-    
-
-## Em ambiente de homologação pode ser uma boa ideia utilizar o mailhog para testar 
-## o envio de emails e também prevenir que emails de tete sejam disparados acidentalmente 
-## para os usuários no caso de o ambiente de homologação utilizar um banco de dados cópia
-## de produção
-
-  # mailhog: 
-  #   image: mailhog/mailhog
-  #   ports:
-  #     - "8025:8025"
