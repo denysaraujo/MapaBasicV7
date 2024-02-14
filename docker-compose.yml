@@ -21,7 +21,7 @@ services:
       - str.env
     build:
       context: ./
-      dockerfile: Dockerfile
+      dockerfile: docker/Dockerfile
     restart: unless-stopped
     ports:
       - "9000:9000"
